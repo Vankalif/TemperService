@@ -1,0 +1,7 @@
+certifi==2021.5.30
+charset-normalizer==2.0.3
+idna==3.2
+pywin32==301
+requests==2.26.0
+urllib3==1.26.6
+watchdog==2.1.3
