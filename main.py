@@ -1,3 +1,4 @@
+import requests
 import win32event
 import win32service
 import os
@@ -6,6 +7,10 @@ import socket
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from win32serviceutil import ServiceFramework, HandleCommandLine
+
+
+observe_folder = "C:\\Users\\admin\\Desktop\\climatControl\\test"
+api_url = ""
 
 
 # Возвращает путь к файлу который был изменён последним в указанной папке
@@ -26,12 +31,23 @@ def get_modified_file(target_folder: str) -> str:
 # Класс для обработки событий файлов
 class FileEventHandler(FileSystemEventHandler):
 
-    def __init__(self, api_url, directory):
-        self.api_url = api_url
+    def __init__(self, url, directory):
+        self.api_url = url
         self.observeDirectory = directory
 
     def on_modified(self, event):
-        print(get_modified_file(self.observeDirectory))
+        file = get_modified_file(self.observeDirectory)
+        with open(file=file, mode="rb") as f:
+            try:
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b'\n':
+                    f.seek(-2, os.SEEK_CUR)
+                last_line = f.readline().decode()
+                date, degree, hundredths, *_ = last_line.split(",")
+                request_data = degree + '.' + hundredths[0:2]
+                requests.post(f'http://172.16.0.91:8000/set_server_room_temp?value={request_data}')
+            except ValueError:
+                return
 
 
 class UsbTemperService(ServiceFramework):
@@ -60,9 +76,7 @@ class UsbTemperService(ServiceFramework):
 
 
     def main(self):
-        file_folder = "C:\\Users\\admin\\Desktop\\climatControl\\test"
-        api_url = ""
-        self.observer.schedule(FileEventHandler(api_url, file_folder), path=file_folder, recursive=False)
+        self.observer.schedule(FileEventHandler(api_url, observe_folder), path=observe_folder, recursive=False)
         self.observer.start()
         try:
             while self.isRunning:
