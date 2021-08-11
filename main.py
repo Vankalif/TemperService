@@ -4,6 +4,8 @@ import win32service
 import os
 import time
 import socket
+
+from requests import RequestException
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from win32serviceutil import ServiceFramework, HandleCommandLine
@@ -46,7 +48,7 @@ class FileEventHandler(FileSystemEventHandler):
                 date, degree, hundredths, *_ = last_line.split(",")
                 request_data = degree + '.' + hundredths[0:2]
                 requests.post(f'http://172.16.0.91:8000/set_server_room_temp?value={request_data}')
-            except ValueError:
+            except (ValueError, RequestException):
                 return
 
 
