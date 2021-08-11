@@ -11,7 +11,7 @@ from watchdog.events import FileSystemEventHandler
 from win32serviceutil import ServiceFramework, HandleCommandLine
 
 
-observe_folder = "C:\\Users\\admin\\Desktop\\climatControl\\test"
+observe_folder = "C:\\Temperature\\Data\\TEMPerX"
 api_url = ""
 
 
